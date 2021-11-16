@@ -3,4 +3,6 @@
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
     <string name="save">Save</string>
+    <string name="get_address">Get Address</string>
+    <string name="address">Address</string>
 </resources>
