@@ -18,16 +18,19 @@ import java.util.Locale;
 
 public class AddActivity extends AppCompatActivity {
 
-    private Button save_button;
-    private Button get_address;
-    private EditText input_latitude;
-    private EditText input_longitude;
+    //declaring variables
+    LocationDatabase db;
+    private Button save_button, get_address;
+    private EditText input_latitude, input_longitude;
     private TextView address_view;
+    private String address;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
+
+        db = new LocationDatabase(this);
 
         save_button = findViewById(R.id.save_button);
         get_address = findViewById(R.id.get_address);
@@ -40,6 +43,10 @@ public class AddActivity extends AppCompatActivity {
         save_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                db.addLocation(address,input_latitude.getText().toString(),
+                        input_longitude.getText().toString());
+                //db.addLocation(address,String.valueOf(lat),String.valueOf(lon));
+
                 Intent intent = new Intent(AddActivity.this,MainActivity.class);
                 startActivity(intent);
             }
@@ -47,26 +54,40 @@ public class AddActivity extends AppCompatActivity {
 
         get_address.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {getAddress(input_latitude,input_longitude);}
+            public void onClick(View view) {
+                //converting to double
+                Double lat = Double.parseDouble(input_latitude.getText().toString());
+                Double lon = Double.parseDouble(input_longitude.getText().toString());
+                address = getAddress(lat,lon);
+                address_view.setText(address);
+            }
         });
     }
 
-    private void getAddress(EditText latitude, EditText longitude) {
+    private String getAddress(double latitude, double longitude) {
         Geocoder gc = new Geocoder(AddActivity.this, Locale.getDefault());
-
-        Double lat = Double.parseDouble(latitude.getText().toString());
-        Double lon = Double.parseDouble(longitude.getText().toString());
-
-
         try {
-            List<Address> list_address = gc.getFromLocation(lat,lon, 1);
+            List<Address> list_address = gc.getFromLocation(latitude,longitude, 1);
             if(list_address.size() > 0){
-                //Toast.makeText(AddActivity.this, list_address.get(0).getCountryName(), Toast.LENGTH_SHORT).show();
-                address_view.setText(list_address.get(0).getCountryName());
+                //Toast.makeText(AddActivity.this, list_address.get(0).getCountryName(),Toast.LENGTH_SHORT).show();
+                address = list_address.get(0).getAddressLine(0);
             }
-
         } catch (IOException e){
             e.printStackTrace();
+        }
+        return address;
+    }
+
+    private void genRandomData(){
+        //Math.floor(Math.random()*(max-min+1)+min)
+        int i = 0;
+        while(i < 50) {
+            float random_lat = (float) Math.floor(Math.random() * (90 - (-90 + 1) + (-90)));
+            float random_long = (float) Math.floor(Math.random() * (80 - (-180 + 1) + (-180)));
+
+            String random_address = getAddress(random_lat,random_long);
+            i++;
+            db.addLocation(random_address, Float.toString(random_lat), Float.toString(random_long));
         }
     }
 }
